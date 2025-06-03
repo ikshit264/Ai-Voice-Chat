@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  name          String?
+  image         String?
+  googleId      String?   @unique
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // User preferences
+  preferences UserPreferences?
+
+  // User's chat sessions
+  chatSessions ChatSession[]
+
+  // User's templates
+  templates ChatTemplate[]
+
+  @@map("users")
+}
+
+model UserPreferences {
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String  @unique @db.ObjectId
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  speakResponses  Boolean @default(true)
+  autoScroll      Boolean @default(true)
+  defaultTemplate String? @db.ObjectId
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+model ChatSession {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  templateId  String?  @db.ObjectId
+  template    ChatTemplate? @relation(fields: [templateId], references: [id])
+  
+  messages    ChatMessage[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId       String      @db.ObjectId
+  session         ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  role            MessageRole
+  content         String
+  originalInput   String?
+  enhancedInput   String?
+  isVoice         Boolean     @default(false)
+  
+  createdAt       DateTime    @default(now())
+
+  @@map("chat_messages")
+}
+
+model ChatTemplate {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  description  String?
+  systemPrompt String
+  userId       String   @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isDefault    Boolean  @default(false)
+  
+  chatSessions ChatSession[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("chat_templates")
+}
+
+model RefreshToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  token     String   @unique
+  userId    String   @db.ObjectId
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
