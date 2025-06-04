@@ -302,8 +302,12 @@ export default function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderP
 
       recognitionRef.current = recognition
       recognition.start()
-    } catch (error) {
-      addDebugLog(`Retry failed: ${error.message}`)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        addDebugLog(`Retry failed: ${error.message}`)
+      } else {
+        addDebugLog(`Retry failed: ${String(error)}`)
+      }
       setIsRetrying(false)
     }
   }
