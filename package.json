@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-cert": "node scripts/generate-cert.js",
+    "dev:https": "npm run generate-cert && NODE_ENV=development next dev --experimental-https",
+    "tunnel": "node scripts/tunnel.js"
   },
   "dependencies": {
     "@aws-sdk/credential-providers": "latest",
@@ -75,6 +78,7 @@
     "@types/react-dom": "^19",
     "postcss": "^8",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "typescript": "^5",
+    "ngrok": "^5.0.0"
   }
 }
